@@ -1,7 +1,40 @@
 - name: Prepare servers
   hosts: all
   become: true
+  tags: prepare
 
   roles:
     - geerlingguy.pip
     - geerlingguy.docker
+
+- name: Deploy Redmine
+  hosts: webservers
+  become: true
+  tags: deploy
+
+  vars:
+    redmine_image: redmine
+
+  tasks:
+    - name: Create .env file for Redmine
+      ansible.builtin.template:
+        src: templates/.env.j2
+        dest: /home/ubuntu/redmine.env
+        owner: ubuntu
+        mode: 0600
+
+    - name: Remove old Redmine container if exists
+      community.docker.docker_container:
+        name: redmine
+        state: absent
+      ignore_errors: true
+
+    - name: Run Redmine container
+      community.docker.docker_container:
+        name: redmine
+        image: "{{ redmine_image }}"
+        state: started
+        restart_policy: always
+        env_file: /home/ubuntu/redmine.env
+        ports:
+          - "{{ redmine_port }}:3000"
