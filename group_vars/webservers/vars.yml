@@ -1,0 +1,6 @@
+db_host: fakehost
+db_port: 6432
+db_name: fakename
+db_user: fakeuser
+db_password: fakepassword
+secret_key_base: "fakekey"
